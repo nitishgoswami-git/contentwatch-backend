@@ -1,0 +1,16 @@
+{
+  "name": "03_proj",
+  "version": "1.0.0",
+  "description": "A backend for a website like youtube",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "author": "Nitish Goswami",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "prettier": "^3.5.3"
+  }
+}
