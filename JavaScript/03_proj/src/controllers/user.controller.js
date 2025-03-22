@@ -24,7 +24,7 @@ const registerUser = asyncHandler(async (req,res)=>{
         throw new ApiError(400, " All Fields are required")
     }
 
-    const userExists = User.findOne({
+    const userExists = await User.findOne({
         $or: [{username},{email}]
     })
     if (userExists){ 
@@ -32,17 +32,22 @@ const registerUser = asyncHandler(async (req,res)=>{
     }
 
     const avatarLocalPath = req.files?.avatar[0]?.path // get the path of multer 
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path
+    console.log(req.files?.avatar[0]?.path )
 
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocalPath = req.files?.coverImage[0]?.path
+    }
     if(!avatarLocalPath){
-        throw new ApiError(400,"Avatar Required")
+        throw new ApiError(400,"Avatar Required for localpath")
     }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
     if(!avatar){
-        throw new ApiError(400,"Avatar Required")
+        throw new ApiError(400,"Avatar Required not uploaded")
     }
 
     const user = await User.create({
