@@ -245,6 +245,78 @@ const getCurrentUser = asyncHandler(async(req,res)=>{
    .status(200)
    .json(200,req.user,"Current User fetched successfully")
 
+})
+
+const updateAccountDetails = asyncHandler(async(req,res)=>{
+    const {fullname,email} = req.body
+
+    if(!(fullname && email)){
+        throw new ApiError(400, "All Fields are required")
+    }
+
+    const user = User.findByIdAndUpdate(req.user?._id ,
+        {
+            $set:{
+                fullname,
+                email
+            }
+
+        },{
+            new:true
+        }
+    ).select("-password -refreshToken")
+
+    return res.status(200).json(
+        new ApiResponse(200,user,"Account Details Updated Successfully")
+    )
+})
+
+const updateUserAvatar = asyncHandler(async(req,res)=>{
+    const avatarLocalPath = req.file?.path
+    if(!avatarLocalPath){throw new ApiError(400,"Avatar File is missing")}
+
+    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    if(!avatar){throw new ApiError(400,"Error while uploading on cloudinary")}
+
+    const user = await User.findByIdAndUpdate(req.user?._id,{
+            $set:{
+                avatar:avatar.url
+                }
+            },{
+                new:true
+            }
+
+
+    ).select("-password -refreshToken")
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,{},"Avatar Image Updated")
+    )
+})
+const updateUserCoverImage = asyncHandler(async(req,res)=>{
+    const UserCoverImage = req.file?.path
+    if(!UserCoverImage){throw new ApiError(400,"coverImage File is missing")}
+
+    const coverImage= await uploadOnCloudinary(UserCoverImage)
+    if(!coverImage){throw new ApiError(400,"Error while uploading on cloudinary")}
+
+    const user = await User.findByIdAndUpdate(req.user?._id,{
+            $set:{
+                coverImage:coverImage.url
+                }
+            },{
+                new:true
+            }
+
+
+    ).select("-password -refreshToken")
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200,{},"Cover Image Updated")
+    )
 
 })
 export {
@@ -253,5 +325,7 @@ export {
     logoutUser,
     refreshAccessToken,
     changeCurrentPassword,
-    getCurrentUser
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar
 }
