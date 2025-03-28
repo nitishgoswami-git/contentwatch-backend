@@ -4,7 +4,6 @@ import { changeCurrentPassword, getCurrentUser, getUserChannelProfile, getWatchH
     updateUserCoverImage } from "../controllers/user.controller.js"
 import { upload} from "../middleware/multer.middleware.js"
 import { verifyJWT } from "../middleware/auth.middleware.js"
-import { verify } from "jsonwebtoken"
 
 const router = Router()
 
@@ -55,7 +54,7 @@ router.route("/avatar").patch(
     updateUserAvatar
 )
 
-router.route("/cover-image").path(
+router.route("/cover-image").patch(
     verifyJWT,
     upload.single("coverImage"),
     updateUserCoverImage
