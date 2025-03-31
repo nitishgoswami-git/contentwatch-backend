@@ -405,7 +405,7 @@ const getWatchHistory = asyncHandler(async (req,res)=>{
                 localField:"watchHistory", // field from the input documents
                 foreignField:"_id", // field from the documents of the "from" collection
                 as:"watchHistory", // output array field
-                pipeline:[
+                pipeline:[ 
                     {
                         $lookup:{
                             from : "users",
