@@ -275,6 +275,8 @@ const updateUserAvatar = asyncHandler(async(req,res)=>{
     const avatarLocalPath = req.file?.path
     if(!avatarLocalPath){throw new ApiError(400,"Avatar File is missing")}
 
+    //TODO: delete old image 
+
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     if(!avatar){throw new ApiError(400,"Error while uploading on cloudinary")}
 
@@ -320,26 +322,28 @@ const updateUserCoverImage = asyncHandler(async(req,res)=>{
 
 })
 const getUserChannelProfile = asyncHandler(async(req,res)=>{
-    const {username} = req.params
+    const {username} = req.params // get the username from url
 
-    if(!username){
+    if(!username?.trim()){
         throw new ApiError(400,"Username is missing")
     }
     const channel = await User.aggregate([
         {
-            $match:{
-                username: username?.toLowerCase()
+            $match:{ // match the user with the username
+                username: username?.toLowerCase() 
                 }
             },
             {
-                $lookup:{
-                    from:"subcriptions",
-                    localField : "_id",
-                    foreignField:"channel",
-                    as:"subscribers"
+                $lookup:{   // join with the subcriptions collection
+                    from:"subcriptions", // which collection to join
+                    localField : "_id", // field from the input documents
+                    foreignField:"channel", // field from the documents of the "from" collection
+                    as:"subscribers" // output array field
                 }
             },
-            {
+            {   // lookup with the subcriptions collection
+                // to get the channels subscribed to
+                // by the user
                 $lookup:{
                     from:"subcriptions",
                     localField : "_id",
@@ -397,10 +401,10 @@ const getWatchHistory = asyncHandler(async (req,res)=>{
         },
         {
             $lookup:{
-                from : "videos",
-                localField:"watchHistory",
-                foreignField:"_id",
-                as:"watchHistory",
+                from : "videos",  // which collection to join
+                localField:"watchHistory", // field from the input documents
+                foreignField:"_id", // field from the documents of the "from" collection
+                as:"watchHistory", // output array field
                 pipeline:[
                     {
                         $lookup:{
@@ -420,9 +424,9 @@ const getWatchHistory = asyncHandler(async (req,res)=>{
                         }
                     },
                     {
-                        $addFields:{
+                        $addFields:{ // add new field to the document
                             owner:{
-                                $first:"$owner"   
+                                $first:"$owner"  // get the first element of the array 
                             }
                         }
                     }
