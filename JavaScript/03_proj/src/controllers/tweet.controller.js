@@ -35,7 +35,7 @@ const createTweet = asyncHandler(async (req, res) => {
     )
 })
 
-// const getUserTweets = asyncHandler(async (req, res) => {
+const getUserTweets = asyncHandler(async (req, res) => {
 //     // get user_id from req.body
 //     // create pipeline on tweets model that match owner = user_id
 //     //
@@ -53,7 +53,7 @@ const createTweet = asyncHandler(async (req, res) => {
 //             }
 //         }
 //     ])
-// })
+ })
 
 const updateTweet = asyncHandler(async (req, res) => {
     // get tweet_id from req.params
