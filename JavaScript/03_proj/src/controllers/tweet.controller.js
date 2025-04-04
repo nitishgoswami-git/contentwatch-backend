@@ -36,23 +36,55 @@ const createTweet = asyncHandler(async (req, res) => {
 })
 
 const getUserTweets = asyncHandler(async (req, res) => {
-//     // get user_id from req.body
-//     // create pipeline on tweets model that match owner = user_id
-//     //
-    
-//     const userTweets = await Tweet.aggregate([
-//         {
-//             $match : { // match the user with user_id
-//                 owner : new mongoose.Types.ObjectId(req.user._id)
 
-//             }
-//         },
-//         {
-//             $lookup:{
-//                 from : ""
-//             }
-//         }
-//     ])
+    //  get user_id 
+    //  verify user_id
+    //  find tweets where owner == user
+    //  return res
+
+    const {userId} = req.params
+    if(!isValidObjectId(userId)){
+        throw new ApiError(400,"Not a valid userId")
+    }
+    
+    const userTweets = await Tweet.aggregate([
+        {
+            $match : { 
+                owner : new mongoose.Types.ObjectId(req.user._id)
+
+            }
+        },
+        {
+            $lookup:{
+                from : "likes",
+                localField: "_id",
+                foreignField:"tweet",
+                as: "tweetLikes",
+                pipeline:[
+                    {
+                        $count: "count"
+                    }
+                ]
+
+            }
+        },
+        {
+            $addFields:{
+                likesCount: {
+                    $ifNull: [{ $arrayElemAt: ["$tweetLikes.count", 0] }, 0]
+                  }
+            }
+        }
+    ])
+
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            userTweets,
+            "Tweets Fetched Successfully"
+        )
+    )
  })
 
 const updateTweet = asyncHandler(async (req, res) => {
