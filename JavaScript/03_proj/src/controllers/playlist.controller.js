@@ -40,13 +40,103 @@ const createPlaylist = asyncHandler(async (req, res) => {
 })
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
-    const {userId} = req.params
-    //TODO: get user playlists
-})
+    // TODO: get user playlists
+    // Get userId
+    // Validate userId
+    // Match playlists where owner == userId
+    // Lookup videos in playlist
+    // Project or add total views per playlist (optional)
+
+    const { userId } = req.params;
+    if (!isValidObjectId(userId)) {
+        throw new ApiError(400, "Not a valid user Id");
+    }
+
+    const userPlaylists = await Playlist.aggregate([
+        {
+            $match: {
+                owner: new mongoose.Types.ObjectId(userId)
+            }
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "videos", 
+                foreignField: "_id",
+                as: "playlistVideos"
+            }
+        },
+        {
+            $addFields: {
+                totalViews: {
+                    $sum: "$playlistVideos.views"
+                },
+                totalVideos:{
+                    $size: "$playlistVideos" 
+                }
+            }
+        },
+        {
+            $project: {
+                _id: 1,
+                name: 1,
+                description: 1,
+                totalViews: 1,
+                playlistVideos: 1
+            }
+        }
+    ]);
+
+    return res.status(200).json(
+        new ApiResponse(200, userPlaylists, "User playlists fetched successfully")
+    );
+});
+
 
 const getPlaylistById = asyncHandler(async (req, res) => {
-    const {playlistId} = req.params
     //TODO: get playlist by id
+    // Extract playlistId from request parameters
+    // Validate the playlistId using isValidObjectId
+    // Match the playlist using the given playlistId
+    // Lookup and populate videos using the 'videos' array
+    // For each video, lookup total likes and comments using $lookup with pipelines
+    // Optionally add total views or other video stats
+    // Return the playlist along with enriched video data
+
+    const {playlistId} = req.params
+    if(!isValidObjectId(playlistId)){
+        throw new ApiError(400,"Not a valid Id")
+    }
+
+    const playlist = await Playlist.findById(playlistId)
+    if(!playlist){
+        throw new ApiError(400,"Playlist not found")
+    }
+
+    const playlistVideos = await Playlist.aggregate([
+        {
+            $match:{
+                _id : new mongoose.Types.ObjectId(playlistId)
+            }
+        },
+        {
+            $lookup:{
+                from : "videos",
+                localField:"videos",
+                foreignField:"_id",
+                as: "playlistVideos"
+            }
+        }
+    ])
+
+    return res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            playlistVideos,
+            "Playlist Fetched Successfully"
+        )
+    )
 })
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
